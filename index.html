@@ -672,7 +672,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIYP0o6UP5e5OdUcby8lKN95brBSGHmFR3Ap2Y6DLK10nedb-fnPPDbe08bONgzqeiPQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9vp5hP6vRLrkeZG_HsA3dOGLSkLyL9Q9sTAkFXi_4NCDSnnj6IlTFto0YYs5e7LGnYQ/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -878,7 +878,51 @@ function setItemDis(key,type){
 }
 function updateItemDis(key,val){
   var item=order.find(function(x){return x.key===key;});if(!item)return;
-  item.disVal=Number(val)||0;recalcItem(item);calcTotal();
+  item.disVal=Number(val)||0;
+  recalcItem(item);
+
+  // Update harga + badge langsung di DOM tanpa re-render
+  var oi=document.getElementById('disinp-'+key);
+  if(!oi)return;
+  var oiEl=oi.closest('.oi');
+  if(!oiEl)return;
+
+  var hasDis=item.disAmt>0;
+  var hargaAfterDis=hasDis?Math.round(item.subtotal/item.qty):item.harga;
+
+  // Update price row
+  var priceRow=oiEl.querySelector('.oi-price-row');
+  if(priceRow){
+    if(hasDis){
+      priceRow.innerHTML='<span class="oi-price has-dis">'+idr(item.harga)+'</span>'
+        +'<span class="oi-price-after">'+idr(hargaAfterDis)+'</span>'
+        +'<span class="oi-dis-badge">-'+(item.disType==='pct'?item.disVal+'%':idr(item.disVal))+'</span>';
+    } else {
+      priceRow.innerHTML='<span class="oi-price">'+idr(item.harga)+'</span>';
+    }
+  }
+
+  // Update subtotal
+  var subVal=oiEl.querySelector('.oi-sub-val');
+  if(subVal) subVal.textContent=idr(item.subtotal);
+
+  // Update "hemat" label
+  var hematEl=oiEl.querySelector('.oi-right span[style*="amber"]');
+  if(hasDis){
+    if(!hematEl){
+      var delBtn=oiEl.querySelector('.oi-del');
+      var span=document.createElement('span');
+      span.style.cssText='font-size:9px;color:var(--amber);font-family:var(--mono)';
+      span.textContent='hemat '+idr(item.disAmt);
+      if(delBtn) oiEl.querySelector('.oi-right').insertBefore(span,delBtn);
+    } else {
+      hematEl.textContent='hemat '+idr(item.disAmt);
+    }
+  } else {
+    if(hematEl) hematEl.remove();
+  }
+
+  calcTotal();
 }
 function adjOrderQty(key,d){
   var item=order.find(function(x){return x.key===key;});if(!item)return;
@@ -904,23 +948,27 @@ function renderOrder(){
     var meta=[item.size,warna].filter(Boolean).join(' · ');
     var dRp=item.disType==='rp'?'on':'',dPct=item.disType==='pct'?'on':'';
     var hasDis=item.disAmt>0;
-    var hargaPerUnit=item.harga;
-    var hargaAfterDis=hasDis?Math.round((item.subtotal)/item.qty):hargaPerUnit;
-    // Harga row: kalau ada diskon, coret harga asli → tampil harga setelah diskon
+    var hargaAfterDis=hasDis?Math.round(item.subtotal/item.qty):item.harga;
+    // Harga row
     var priceHtml=hasDis
-      ? '<div class="oi-price-row"><span class="oi-price has-dis">'+idr(hargaPerUnit)+'</span><span class="oi-price-after">'+idr(hargaAfterDis)+'</span><span class="oi-dis-badge">-'+(item.disType==='pct'?item.disVal+'%':idr(item.disVal))+'</span></div>'
-      : '<div class="oi-price-row"><span class="oi-price">'+idr(hargaPerUnit)+'</span></div>';
+      ? '<div class="oi-price-row"><span class="oi-price has-dis">'+idr(item.harga)+'</span><span class="oi-price-after">'+idr(hargaAfterDis)+'</span><span class="oi-dis-badge">-'+(item.disType==='pct'?item.disVal+'%':idr(item.disVal))+'</span></div>'
+      : '<div class="oi-price-row"><span class="oi-price">'+idr(item.harga)+'</span></div>';
     return '<div class="oi">'
       +'<div class="oi-left">'
         +'<div class="oi-name">'+item.nama+'</div>'
         +(meta?'<div class="oi-meta">'+meta+'</div>':'')
         +priceHtml
+        // Diskon row — SELALU tampil, input langsung fokus
         +'<div class="oi-dis-row">'
           +'<div class="oi-dis-toggle">'
             +'<button class="'+dRp+'" onclick="setItemDis(\''+item.key+'\',\'rp\')">Rp</button>'
             +'<button class="'+dPct+'" onclick="setItemDis(\''+item.key+'\',\'pct\')">%</button>'
           +'</div>'
-          +'<input class="oi-dis-input" id="disinp-'+item.key+'" type="number" min="0"'+(item.disType==='pct'?' max="100"':'')+' value="'+(item.disVal||'')+'" placeholder="Dis…" oninput="updateItemDis(\''+item.key+'\',this.value)"/>'
+          +'<input class="oi-dis-input" id="disinp-'+item.key+'" type="number" min="0"'
+            +(item.disType==='pct'?' max="100"':'')
+            +' value="'+(item.disVal||'')+'"'
+            +' placeholder="0"'
+            +' oninput="updateItemDis(\''+item.key+'\',this.value)"/>'
         +'</div>'
       +'</div>'
       +'<div class="oi-qty">'
@@ -934,6 +982,7 @@ function renderOrder(){
       +'<div class="oi-right">'
         +'<span class="oi-sub-label">Subtotal</span>'
         +'<span class="oi-sub-val">'+idr(item.subtotal)+'</span>'
+        +(hasDis?'<span style="font-size:9px;color:var(--amber);font-family:var(--mono)">hemat '+idr(item.disAmt)+'</span>':'')
         +'<button class="oi-del" onclick="removeOrderItem(\''+item.key+'\')">✕</button>'
       +'</div>'
     +'</div>';
@@ -972,8 +1021,16 @@ function doCheckout(){
   var kasir=document.getElementById('kasirName').value.trim()||'Kasir';
   if(bayar<grand){toast('Uang bayar kurang!','err');document.getElementById('bayarIn').focus();return;}
   var noTrx='TRX-'+Date.now();
-  var rData={noTransaksi:noTrx,kasir:kasir,tanggal:new Date().toLocaleString('id-ID'),totalHarga:sub,diskon:dis,grandTotal:grand,bayar:bayar,kembalian:bayar-grand,items:order.map(function(x){return{kode:x.kode,nama:x.nama,size:x.size,warna:x.warna||'',qty:x.qty,harga:x.harga,disAmt:x.disAmt||0,subtotal:x.subtotal};})};
-  var payload={noTransaksi:noTrx,kasir:kasir,totalItem:order.reduce(function(a,b){return a+b.qty;},0),totalHarga:sub,diskon:dis,bayar:bayar,items:rData.items};
+  // Format tanggal dari browser lokal user → "2026-03-15 13:22:00" format WIB
+  var now = new Date();
+  function pad(n){return n.toString().padStart(2,'0');}
+  var tanggalServer = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())
+    +' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  var tanggalDisplay = now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
+    +', '+pad(now.getHours())+':'+pad(now.getMinutes());
+
+  var rData={noTransaksi:noTrx,kasir:kasir,tanggal:tanggalDisplay,totalHarga:sub,diskon:dis,grandTotal:grand,bayar:bayar,kembalian:bayar-grand,items:order.map(function(x){return{kode:x.kode,nama:x.nama,size:x.size,warna:x.warna||'',qty:x.qty,harga:x.harga,disAmt:x.disAmt||0,subtotal:x.subtotal};})};
+  var payload={noTransaksi:noTrx,kasir:kasir,tanggalServer:tanggalServer,totalItem:order.reduce(function(a,b){return a+b.qty;},0),totalHarga:sub,diskon:dis,bayar:bayar,items:rData.items};
   showVeil(true);
   api('simpanTransaksi',{transaksi:payload}).then(function(res){
     showVeil(false);
