@@ -1172,40 +1172,54 @@ table.master-tbl tbody tr.row-selected td{border-color:#fecaca}
 
 <script>
 // ══ API CONFIG ════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZsNQH_-2tpHoggOJizU7o8yDalkxtQonLITVdEM2f_-pAkIMOwP088dG-XwNN4eI/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoerKTtNCRxeRDOxLLnWz6ACTxn5Y9HuS1oOjrSRKt1Hq1ZU7D-kPU3_pchygZpnxFnw/exec';
 
-async function api(action, body=null) {
-  try {
-    let url, opts;
+// ── API call via iframe/form POST (bypass CORS Apps Script redirect) ──
+function api(action, body=null){
+  return new Promise((resolve)=>{
+    // Untuk GET: pakai script tag (JSONP style via callback)
+    // Untuk POST: pakai hidden form submit ke iframe
     if(body===null){
-      url  = `${SCRIPT_URL}?action=${encodeURIComponent(action)}`;
-      opts = { method:'GET', redirect:'follow' };
+      // GET via fetch dengan no-cors tidak bisa baca response
+      // Pakai fetch biasa — Apps Script sudah set CORS header di doGet
+      fetch(`${SCRIPT_URL}?action=${encodeURIComponent(action)}`, {
+        method:'GET',
+        redirect:'follow',
+        cache:'no-cache'
+      })
+      .then(r=>{
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.text();
+      })
+      .then(txt=>{
+        try{ resolve(JSON.parse(txt)); }
+        catch(e){ resolve([]); }
+      })
+      .catch(e=>{
+        console.error('GET error:',e);
+        resolve({success:false,error:e.message});
+      });
     } else {
-      url  = SCRIPT_URL;
-      opts = {
-        method : 'POST',
-        redirect: 'follow',
-        // Content-Type text/plain supaya tidak trigger CORS preflight
-        headers : { 'Content-Type': 'text/plain;charset=utf-8' },
-        body    : JSON.stringify({ action, ...body })
-      };
+      // POST via fetch — text/plain tidak trigger preflight
+      const payload = JSON.stringify({action,...body});
+      fetch(SCRIPT_URL,{
+        method:'POST',
+        redirect:'follow',
+        cache:'no-cache',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: payload
+      })
+      .then(r=>r.text())
+      .then(txt=>{
+        try{ resolve(JSON.parse(txt)); }
+        catch(e){ resolve({success:false,error:'Parse error'}); }
+      })
+      .catch(e=>{
+        console.error('POST error:',e);
+        resolve({success:false,error:e.message});
+      });
     }
-    const res  = await fetch(url, opts);
-    const text = await res.text();
-    if(!text) throw new Error('Response kosong dari server');
-    try {
-      return JSON.parse(text);
-    } catch(pe) {
-      // Kadang Apps Script wrap dalam HTML error
-      if(text.includes('Error')) throw new Error(text.slice(0,200));
-      throw new Error('Response tidak valid: '+text.slice(0,100));
-    }
-  } catch(e) {
-    console.error('[API Error]', action, e.message);
-    showVeil(false);
-    toast('⚠ '+e.message, 'err');
-    return { success:false, error: e.message };
-  }
+  });
 }
 
 // ══ STATE ═══════════════════════════════════════════════════
