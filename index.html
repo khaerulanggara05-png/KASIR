@@ -1172,52 +1172,39 @@ table.master-tbl tbody tr.row-selected td{border-color:#fecaca}
 
 <script>
 // ══ API CONFIG ════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoerKTtNCRxeRDOxLLnWz6ACTxn5Y9HuS1oOjrSRKt1Hq1ZU7D-kPU3_pchygZpnxFnw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZsNQH_-2tpHoggOJizU7o8yDalkxtQonLITVdEM2f_-pAkIMOwP088dG-XwNN4eI/exec';
 
-// ── API call via iframe/form POST (bypass CORS Apps Script redirect) ──
 function api(action, body=null){
   return new Promise((resolve)=>{
-    // Untuk GET: pakai script tag (JSONP style via callback)
-    // Untuk POST: pakai hidden form submit ke iframe
     if(body===null){
-      // GET via fetch dengan no-cors tidak bisa baca response
-      // Pakai fetch biasa — Apps Script sudah set CORS header di doGet
       fetch(`${SCRIPT_URL}?action=${encodeURIComponent(action)}`, {
-        method:'GET',
-        redirect:'follow',
-        cache:'no-cache'
-      })
-      .then(r=>{
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        return r.text();
-      })
-      .then(txt=>{
-        try{ resolve(JSON.parse(txt)); }
-        catch(e){ resolve([]); }
-      })
-      .catch(e=>{
-        console.error('GET error:',e);
-        resolve({success:false,error:e.message});
-      });
-    } else {
-      // POST via fetch — text/plain tidak trigger preflight
-      const payload = JSON.stringify({action,...body});
-      fetch(SCRIPT_URL,{
-        method:'POST',
-        redirect:'follow',
-        cache:'no-cache',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: payload
+        method:'GET', redirect:'follow', cache:'no-cache'
       })
       .then(r=>r.text())
-      .then(txt=>{
-        try{ resolve(JSON.parse(txt)); }
-        catch(e){ resolve({success:false,error:'Parse error'}); }
-      })
-      .catch(e=>{
-        console.error('POST error:',e);
-        resolve({success:false,error:e.message});
-      });
+      .then(txt=>{ try{resolve(JSON.parse(txt));}catch(e){resolve([]);} })
+      .catch(e=>{ resolve({success:false,error:e.message}); });
+    } else {
+      // Kalau ada limit atau param extra untuk GET-style action, cek dulu
+      const getActions = ['getMaster','getRiwayat','initSheets'];
+      if(getActions.includes(action)){
+        // Build query string dari body
+        const params = Object.entries(body).map(([k,v])=>`${k}=${encodeURIComponent(v)}`).join('&');
+        fetch(`${SCRIPT_URL}?action=${encodeURIComponent(action)}&${params}`, {
+          method:'GET', redirect:'follow', cache:'no-cache'
+        })
+        .then(r=>r.text())
+        .then(txt=>{ try{resolve(JSON.parse(txt));}catch(e){resolve([]);} })
+        .catch(e=>{ resolve({success:false,error:e.message}); });
+      } else {
+        fetch(SCRIPT_URL,{
+          method:'POST', redirect:'follow', cache:'no-cache',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({action,...body})
+        })
+        .then(r=>r.text())
+        .then(txt=>{ try{resolve(JSON.parse(txt));}catch(e){resolve({success:false,error:'Parse error'});} })
+        .catch(e=>{ resolve({success:false,error:e.message}); });
+      }
     }
   });
 }
@@ -2214,7 +2201,7 @@ let histSortDir   = 'desc'; // 'asc' | 'desc'
 
 function loadHistory(){
   showVeil(true);
-  api('getRiwayat&limit=500').then(data=>{
+  api('getRiwayat',{limit:500}).then(data=>{
     showVeil(false);
     if(Array.isArray(data)){histAllData=data;initHistFilter();applyHistFilter();}
     else toast(data.error||'Gagal muat riwayat','err');
