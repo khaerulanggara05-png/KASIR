@@ -1170,31 +1170,44 @@ table.master-tbl tbody tr.row-selected td{border-color:#fecaca}
 <div class="veil" id="veil" style="display:none"><div class="spin"></div></div>
 
 
+<script>
 // ══ API CONFIG ════════════════════════════════════════════════
-// Ganti dengan URL Apps Script kamu
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZsNQH_-2tpHoggOJizU7o8yDalkxtQonLITVdEM2f_-pAkIMOwP088dG-XwNN4eI/exec';
 
 async function api(action, body=null) {
   try {
-    let res;
+    let url, opts;
     if(body===null){
-      res = await fetch(`${SCRIPT_URL}?action=${action}`, {redirect:'follow'});
+      url  = `${SCRIPT_URL}?action=${encodeURIComponent(action)}`;
+      opts = { method:'GET', redirect:'follow' };
     } else {
-      res = await fetch(SCRIPT_URL, {
-        method:'POST',
-        redirect:'follow',
-        headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify({action, ...body})
-      });
+      url  = SCRIPT_URL;
+      opts = {
+        method : 'POST',
+        redirect: 'follow',
+        // Content-Type text/plain supaya tidak trigger CORS preflight
+        headers : { 'Content-Type': 'text/plain;charset=utf-8' },
+        body    : JSON.stringify({ action, ...body })
+      };
     }
-    const data = await res.json();
-    return data;
+    const res  = await fetch(url, opts);
+    const text = await res.text();
+    if(!text) throw new Error('Response kosong dari server');
+    try {
+      return JSON.parse(text);
+    } catch(pe) {
+      // Kadang Apps Script wrap dalam HTML error
+      if(text.includes('Error')) throw new Error(text.slice(0,200));
+      throw new Error('Response tidak valid: '+text.slice(0,100));
+    }
   } catch(e) {
+    console.error('[API Error]', action, e.message);
+    showVeil(false);
+    toast('⚠ '+e.message, 'err');
     return { success:false, error: e.message };
   }
 }
 
-<script>
 // ══ STATE ═══════════════════════════════════════════════════
 let catalog=[], order=[], spItem=null, spSize=null, spQtyN=1;
 let pdfRows=[];
