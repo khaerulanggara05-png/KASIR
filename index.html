@@ -672,7 +672,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9vp5hP6vRLrkeZG_HsA3dOGLSkLyL9Q9sTAkFXi_4NCDSnnj6IlTFto0YYs5e7LGnYQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaUr1GhvR59ua_FNpNH5k2PVVJLLRYtuUWHOf81BpIDIVXqjcmSUf6Gbv-zb0poHp4FQ/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -1021,13 +1021,18 @@ function doCheckout(){
   var kasir=document.getElementById('kasirName').value.trim()||'Kasir';
   if(bayar<grand){toast('Uang bayar kurang!','err');document.getElementById('bayarIn').focus();return;}
   var noTrx='TRX-'+Date.now();
-  // Format tanggal dari browser lokal user → "2026-03-15 13:22:00" format WIB
+  // Format tanggal WIB dari browser — gunakan offset eksplisit supaya tidak tergantung timezone browser
   var now = new Date();
+  // Konversi ke WIB (UTC+7) secara eksplisit
+  var wibOffset = 7 * 60; // menit
+  var localOffset = now.getTimezoneOffset(); // negatif jika timzone positif
+  var wibTime = new Date(now.getTime() + (wibOffset + localOffset) * 60 * 1000);
   function pad(n){return n.toString().padStart(2,'0');}
-  var tanggalServer = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())
-    +' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
-  var tanggalDisplay = now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
-    +', '+pad(now.getHours())+':'+pad(now.getMinutes());
+  var tanggalServer = wibTime.getFullYear()+'-'+pad(wibTime.getMonth()+1)+'-'+pad(wibTime.getDate())
+    +' '+pad(wibTime.getHours())+':'+pad(wibTime.getMinutes())+':'+pad(wibTime.getSeconds());
+  var bulanId=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  var tanggalDisplay = pad(wibTime.getDate())+' '+bulanId[wibTime.getMonth()]+' '+wibTime.getFullYear()
+    +', '+pad(wibTime.getHours())+':'+pad(wibTime.getMinutes());
 
   var rData={noTransaksi:noTrx,kasir:kasir,tanggal:tanggalDisplay,totalHarga:sub,diskon:dis,grandTotal:grand,bayar:bayar,kembalian:bayar-grand,items:order.map(function(x){return{kode:x.kode,nama:x.nama,size:x.size,warna:x.warna||'',qty:x.qty,harga:x.harga,disAmt:x.disAmt||0,subtotal:x.subtotal};})};
   var payload={noTransaksi:noTrx,kasir:kasir,tanggalServer:tanggalServer,totalItem:order.reduce(function(a,b){return a+b.qty;},0),totalHarga:sub,diskon:dis,bayar:bayar,items:rData.items};
@@ -1341,21 +1346,38 @@ function switchHistTab(tab,btn){
   document.getElementById('hist-tab-detail').style.display=tab==='detail'?'block':'none';
 }
 
+// Helper: tanggal WIB sekarang → "2026-03-15"
+function todayWIB(){
+  var now=new Date();
+  var wib=new Date(now.getTime()+(7*60+now.getTimezoneOffset())*60000);
+  return wib.getFullYear()+'-'+(wib.getMonth()+1).toString().padStart(2,'0')+'-'+wib.getDate().toString().padStart(2,'0');
+}
 function initHistFilter(){
-  var today=new Date().toLocaleDateString('sv-SE');
+  var today=todayWIB();
   document.getElementById('filterDateFrom').value=today;
   document.getElementById('filterDateTo').value=today;
-  document.getElementById('riwayatDateLabel').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var bulan=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var hari=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var now=new Date();
+  var wib=new Date(now.getTime()+(7*60+now.getTimezoneOffset())*60000);
+  document.getElementById('riwayatDateLabel').textContent=hari[wib.getDay()]+', '+wib.getDate()+' '+bulan[wib.getMonth()]+' '+wib.getFullYear();
 }
 function setQuickDate(range,btn){
   document.querySelectorAll('.btn-date-quick').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
-  var today=new Date(),sv=function(d){return d.toLocaleDateString('sv-SE');};
+  var today=todayWIB();
   var from=document.getElementById('filterDateFrom'),to=document.getElementById('filterDateTo');
-  if(range==='today'){from.value=sv(today);to.value=sv(today);}
-  else if(range==='week'){var w=new Date(today);w.setDate(today.getDate()-6);from.value=sv(w);to.value=sv(today);}
-  else if(range==='month'){from.value=sv(new Date(today.getFullYear(),today.getMonth(),1));to.value=sv(today);}
-  else{from.value='';to.value='';}
+  if(range==='today'){
+    from.value=today;to.value=today;
+  } else if(range==='week'){
+    var d=new Date(today+'T00:00:00');d.setDate(d.getDate()-6);
+    from.value=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+    to.value=today;
+  } else if(range==='month'){
+    from.value=today.slice(0,7)+'-01';to.value=today;
+  } else {
+    from.value='';to.value='';
+  }
   applyHistFilter();
 }
 function normTgl(t){return t?String(t).slice(0,10):'';}
@@ -1396,7 +1418,15 @@ function sortAndRenderHist(){
   if(!sorted.length){b.innerHTML='<tr><td colspan="9" style="padding:40px;text-align:center;color:var(--ink3)">Tidak ada transaksi pada periode ini</td></tr>';return;}
   b.innerHTML=sorted.map(function(r){
     var tgl='-';
-    if(r.tanggal){var dt=new Date(String(r.tanggal).replace('T',' '));if(!isNaN(dt))tgl=dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});else tgl=String(r.tanggal).slice(0,16);}
+    if(r.tanggal){
+      // Parse tanggal WIB: "2026-03-15 13:22:00" → tampilkan apa adanya tanpa konversi timezone browser
+      var ts=String(r.tanggal).replace('T',' ');
+      var parts=ts.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+      if(parts){
+        var bulanSingkat=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+        tgl=parseInt(parts[3])+' '+bulanSingkat[parseInt(parts[2])-1]+' '+parts[1]+', '+parts[4]+':'+parts[5];
+      } else { tgl=ts.slice(0,16); }
+    }
     var dis=Number(r.diskon)>0?'<span style="color:var(--amber);font-family:var(--mono);font-size:12px;font-weight:600">− '+idr(r.diskon)+'</span>':'<span style="color:var(--ink4)">—</span>';
     return '<tr><td class="tc-kode" style="font-size:11px">'+(r.noTransaksi||'—')+'</td><td style="font-size:12px;white-space:nowrap">'+tgl+'</td><td>'+(r.kasir||'—')+'</td><td style="text-align:center;font-family:var(--mono);font-weight:600">'+r.totalItem+'</td><td style="font-family:var(--mono);font-size:12px">'+idr(r.totalHarga)+'</td><td>'+dis+'</td><td class="tc-price">'+idr(r.grandTotal)+'</td><td style="font-family:var(--mono);font-size:12px;color:var(--green)">'+idr(r.kembalian)+'</td><td><button class="btn btn-ghost btn-sm" onclick="previewResi(JSON.parse(this.dataset.r))">🧾</button></td></tr>';
   }).join('');
@@ -1410,7 +1440,15 @@ function renderDetailTable(data){
   var sorted=[...data].sort(function(a,b){return String(b.tanggal||'').localeCompare(String(a.tanggal||''));});
   b.innerHTML=sorted.map(function(r){
     var tgl='-';
-    if(r.tanggal){var dt=new Date(String(r.tanggal).replace('T',' '));if(!isNaN(dt))tgl=dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+', '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});else tgl=String(r.tanggal).slice(0,16);}
+    if(r.tanggal){
+      // Parse tanggal WIB: "2026-03-15 13:22:00" → tampilkan apa adanya tanpa konversi timezone browser
+      var ts=String(r.tanggal).replace('T',' ');
+      var parts=ts.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+      if(parts){
+        var bulanSingkat=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+        tgl=parseInt(parts[3])+' '+bulanSingkat[parseInt(parts[2])-1]+' '+parts[1]+', '+parts[4]+':'+parts[5];
+      } else { tgl=ts.slice(0,16); }
+    }
     var disStr=Number(r.diskonItem)>0?'<span style="color:var(--amber);font-size:11px;font-family:var(--mono)">−'+idr(r.diskonItem)+'</span>':'—';
     return '<tr>'
       +'<td style="font-size:11px;white-space:nowrap;color:var(--ink3)">'+tgl+'</td>'
