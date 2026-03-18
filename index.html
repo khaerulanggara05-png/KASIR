@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GOZEAL STORE</title>
+<title>DRIP — Fashion POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -301,7 +301,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 <body>
 
 <header>
-  <div class="logo">GOZEAL STORE<span>®</span></div>
+  <div class="logo">Drip<span>®</span></div>
   <nav>
     <button class="active" onclick="goPage('kasir',this)">Kasir</button>
     <button onclick="goPage('master',this)">Master Barang</button>
@@ -537,10 +537,11 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
     </div>
   </div>
 
-  <!-- Tab: Transaksi | Detail Produk -->
+  <!-- Tab: Transaksi | Detail Produk | Rekap Produk -->
   <div style="display:flex;gap:8px;margin-bottom:12px">
     <button class="fmt-tab active" id="tabTrx" onclick="switchHistTab('trx',this)">📋 Ringkasan Transaksi</button>
     <button class="fmt-tab" id="tabDetail" onclick="switchHistTab('detail',this)">📦 Detail Produk Keluar</button>
+    <button class="fmt-tab" id="tabRekap" onclick="switchHistTab('rekap',this)">📊 Rekap per Produk</button>
   </div>
 
   <!-- Tab: Ringkasan -->
@@ -585,6 +586,35 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
           </tr>
         </thead>
         <tbody id="detailBody"><tr><td colspan="11" style="padding:40px;text-align:center;color:var(--ink3)">Belum ada data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Rekap per Produk -->
+  <div id="hist-tab-rekap" class="card" style="display:none">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:12px">
+      <div style="position:relative;flex:1;max-width:260px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink3)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="rekapSearch" type="text" placeholder="Cari nama / kode…" oninput="filterRekap()" style="padding:6px 10px 6px 28px;width:100%;border:1.5px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:12px;outline:none;background:#fff"/>
+      </div>
+      <span id="rekapCount" style="font-size:12px;color:var(--ink3)">0 produk</span>
+      <span style="font-size:11px;color:var(--ink3);margin-left:auto">Klik header untuk sort</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="master-tbl" id="rekapTbl">
+        <thead>
+          <tr>
+            <th style="width:36px;text-align:center">#</th>
+            <th class="sortable" data-rekap="kode" onclick="sortRekap(this)">Kode <span class="sort-icon">↕</span></th>
+            <th class="sortable" data-rekap="nama" onclick="sortRekap(this)">Nama Produk <span class="sort-icon">↕</span></th>
+            <th>Kategori</th>
+            <th class="sortable sort-desc" data-rekap="totalQty" onclick="sortRekap(this)" style="text-align:center">Total Qty <span class="sort-icon">↓</span></th>
+            <th class="sortable" data-rekap="totalSubtotal" onclick="sortRekap(this)">Total Pendapatan <span class="sort-icon">↕</span></th>
+            <th class="sortable" data-rekap="totalDiskon" onclick="sortRekap(this)">Total Diskon <span class="sort-icon">↕</span></th>
+            <th>Size Terjual</th>
+          </tr>
+        </thead>
+        <tbody id="rekapBody"><tr><td colspan="8" style="padding:40px;text-align:center;color:var(--ink3)">Belum ada data</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -672,7 +702,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaUr1GhvR59ua_FNpNH5k2PVVJLLRYtuUWHOf81BpIDIVXqjcmSUf6Gbv-zb0poHp4FQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCZsNQH_-2tpHoggOJizU7o8yDalkxtQonLITVdEM2f_-pAkIMOwP088dG-XwNN4eI/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -1052,7 +1082,7 @@ function showResi(d){
     var disInfo=i.disAmt>0?' <span style="color:#d97706">-'+idr(i.disAmt)+'</span>':'';
     return '<div style="margin-bottom:6px"><div class="resi-row"><span style="font-weight:600">'+i.nama+'</span><span class="rv">'+idr(i.subtotal)+disInfo+'</span></div><div style="font-size:10px;color:#6b7280;margin-bottom:3px">'+(meta?meta+' · ':'')+'×'+i.qty+' @ '+idr(i.harga)+'</div></div>';
   }).join('');
-  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">GOZEAL STORE</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Gozeal Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
+  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">DRIP</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Fashion Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
   document.getElementById('resiContent').innerHTML=lastResiHtml;
   document.getElementById('resiModal').style.display='flex';
 }
@@ -1344,6 +1374,8 @@ function switchHistTab(tab,btn){
   btn.classList.add('active');
   document.getElementById('hist-tab-trx').style.display=tab==='trx'?'block':'none';
   document.getElementById('hist-tab-detail').style.display=tab==='detail'?'block':'none';
+  document.getElementById('hist-tab-rekap').style.display=tab==='rekap'?'block':'none';
+  if(tab==='rekap') renderRekapTable(detailFiltered);
 }
 
 // Helper: tanggal WIB sekarang → "2026-03-15"
@@ -1388,6 +1420,7 @@ function applyHistFilter(){
   updateStats(histFiltered,from,to);
   sortAndRenderHist();
   renderDetailTable(detailFiltered);
+  if(activeHistTab==='rekap') renderRekapTable(detailFiltered);
 }
 function updateStats(data,from,to){
   var rev=data.reduce(function(a,b){return a+Number(b.grandTotal);},0);
@@ -1467,6 +1500,113 @@ function renderDetailTable(data){
 }
 
 function previewResi(r){showResi({noTransaksi:r.noTransaksi,tanggal:r.tanggal,kasir:r.kasir,totalHarga:r.totalHarga,diskon:r.diskon,grandTotal:r.grandTotal,bayar:r.bayar,kembalian:r.kembalian,items:[]});}
+
+// ══ REKAP PER PRODUK ═══════════════════════════════════════════
+var rekapData=[], rekapSortCol='totalQty', rekapSortDir='desc';
+
+function buildRekap(data){
+  // Group by kodeBarang
+  var map={};
+  data.forEach(function(r){
+    var key=r.kodeBarang||'—';
+    if(!map[key]){
+      map[key]={
+        kode      : r.kodeBarang||'—',
+        nama      : r.namaBarang||'—',
+        kategori  : '',
+        totalQty  : 0,
+        totalSubtotal: 0,
+        totalDiskon  : 0,
+        sizes     : {}  // size → qty
+      };
+    }
+    map[key].totalQty      += Number(r.qty)||0;
+    map[key].totalSubtotal += Number(r.subtotal)||0;
+    map[key].totalDiskon   += Number(r.diskonItem)||0;
+    var sz = r.size||'—';
+    map[key].sizes[sz] = (map[key].sizes[sz]||0) + (Number(r.qty)||0);
+  });
+  // Tambah info kategori dari catalog
+  Object.values(map).forEach(function(item){
+    var cat=catalog.find(function(c){return c.kode===item.kode;});
+    if(cat) item.kategori=cat.kategori||'';
+  });
+  return Object.values(map);
+}
+
+function renderRekapTable(data){
+  rekapData = buildRekap(data);
+  var q = (document.getElementById('rekapSearch')||{}).value||'';
+  renderRekapRows(rekapData, q);
+}
+
+function renderRekapRows(data, q){
+  q = (q||'').toLowerCase().trim();
+  var filtered = q
+    ? data.filter(function(r){return r.nama.toLowerCase().includes(q)||r.kode.toLowerCase().includes(q);})
+    : data;
+
+  // Sort
+  var col=rekapSortCol, dir=rekapSortDir==='asc'?1:-1;
+  var sorted=[...filtered].sort(function(a,b){
+    var va=a[col]??'', vb=b[col]??'';
+    if(typeof va==='string') va=va.toLowerCase();
+    if(typeof vb==='string') vb=vb.toLowerCase();
+    return va<vb?-1*dir:va>vb?1*dir:0;
+  });
+
+  var el=document.getElementById('rekapBody');
+  var countEl=document.getElementById('rekapCount');
+  if(countEl) countEl.textContent=sorted.length+' produk';
+
+  if(!sorted.length){
+    el.innerHTML='<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--ink3)">Tidak ada data pada periode ini</td></tr>';
+    return;
+  }
+
+  el.innerHTML=sorted.map(function(r,i){
+    // Size breakdown: "M×3, L×5, XL×2"
+    var sizeStr=Object.keys(r.sizes).map(function(s){
+      return '<span style="font-size:10px;font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;margin:1px">'+s+'<strong style="color:var(--primary)">×'+r.sizes[s]+'</strong></span>';
+    }).join(' ');
+
+    // Warna baris bergantian
+    var bg = i%2===0 ? '' : 'background:var(--surface2)';
+
+    return '<tr style="'+bg+'">'
+      +'<td style="text-align:center;color:var(--ink3);font-size:11px;padding:8px 10px">'+(i+1)+'</td>'
+      +'<td class="tc-kode" style="padding:8px 14px">'+r.kode+'</td>'
+      +'<td style="padding:8px 14px;font-weight:600;font-size:13px">'+hlText(r.nama,q)+'</td>'
+      +'<td style="padding:8px 14px;font-size:12px;color:var(--ink3)">'+( r.kategori||'—')+'</td>'
+      +'<td style="text-align:center;padding:8px 14px">'
+        +'<span style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--primary)">'+r.totalQty+'</span>'
+        +' <span style="font-size:10px;color:var(--ink3)">pcs</span>'
+      +'</td>'
+      +'<td style="padding:8px 14px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green)">'+idr(r.totalSubtotal)+'</td>'
+      +'<td style="padding:8px 14px">'+(r.totalDiskon>0?'<span style="color:var(--amber);font-family:var(--mono);font-size:12px">−'+idr(r.totalDiskon)+'</span>':'<span style="color:var(--ink4)">—</span>')+'</td>'
+      +'<td style="padding:8px 14px">'+sizeStr+'</td>'
+    +'</tr>';
+  }).join('');
+}
+
+function filterRekap(){
+  var q=document.getElementById('rekapSearch').value;
+  renderRekapRows(rekapData, q);
+}
+
+function sortRekap(th){
+  var col=th.dataset.rekap;
+  if(rekapSortCol===col) rekapSortDir=rekapSortDir==='asc'?'desc':'asc';
+  else{rekapSortCol=col;rekapSortDir=col==='totalQty'||col==='totalSubtotal'?'desc':'asc';}
+  document.querySelectorAll('#rekapTbl thead th.sortable').forEach(function(h){
+    h.classList.remove('sort-asc','sort-desc');
+    var ic=h.querySelector('.sort-icon');if(ic)ic.textContent='↕';
+  });
+  th.classList.add('sort-'+rekapSortDir);
+  var ic=th.querySelector('.sort-icon');if(ic)ic.textContent=rekapSortDir==='asc'?'↑':'↓';
+  var q=document.getElementById('rekapSearch').value;
+  renderRekapRows(rekapData,q);
+}
 
 // ══ INIT ═══════════════════════════════════════════════════════
 window.onload = function() {
