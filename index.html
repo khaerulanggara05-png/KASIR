@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#111827"/>
-<title>DRIP — Fashion POS</title>
+<title>Gozeal POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -459,7 +459,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 <body>
 
 <header>
-  <div class="logo">Drip<span>®</span></div>
+  <div class="logo">Gozeal Store<span>®</span></div>
   <nav>
     <button class="active" onclick="goPage('kasir',this)">Kasir</button>
     <button onclick="goPage('master',this)">Master Barang</button>
@@ -1320,7 +1320,7 @@ function showResi(d){
     var disInfo=i.disAmt>0?' <span style="color:#d97706">-'+idr(i.disAmt)+'</span>':'';
     return '<div style="margin-bottom:6px"><div class="resi-row"><span style="font-weight:600">'+i.nama+'</span><span class="rv">'+idr(i.subtotal)+disInfo+'</span></div><div style="font-size:10px;color:#6b7280;margin-bottom:3px">'+(meta?meta+' · ':'')+'×'+i.qty+' @ '+idr(i.harga)+'</div></div>';
   }).join('');
-  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">DRIP</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Fashion Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
+  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">GOZEAL</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
   document.getElementById('resiContent').innerHTML=lastResiHtml;
   document.getElementById('resiModal').style.display='flex';
 }
