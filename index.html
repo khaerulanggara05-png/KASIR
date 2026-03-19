@@ -2,8 +2,12 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gozeal Store</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#111827"/>
+<title>DRIP — Fashion POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -287,6 +291,158 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 /* TOAST / VEIL */
 @media print{body>*{display:none!important}#printArea{display:block!important;position:fixed;inset:0;background:#fff;padding:12px;z-index:99999}}
+
+/* ══ MOBILE BOTTOM NAV ══════════════════════════════════════ */
+.mob-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:var(--primary);
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:0;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.mob-nav-inner{display:flex;align-items:stretch}
+.mob-nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 4px 8px;border:none;background:transparent;cursor:pointer;
+  color:rgba(255,255,255,.45);font-family:var(--sans);font-size:10px;font-weight:600;
+  letter-spacing:.3px;gap:4px;transition:all .15s;
+}
+.mob-nav-btn svg{width:22px;height:22px;stroke-width:1.8}
+.mob-nav-btn.active{color:#fff}
+.mob-nav-btn.active .mob-nav-dot{background:var(--accent)}
+.mob-nav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:2px}
+
+/* ══ MOBILE ORDER FAB ════════════════════════════════════════ */
+.mob-order-fab{
+  display:none;
+  position:fixed;bottom:80px;right:16px;z-index:350;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--accent);color:#fff;border:none;
+  box-shadow:0 4px 20px rgba(37,99,235,.5);
+  font-size:24px;cursor:pointer;
+  align-items:center;justify-content:center;
+  transition:transform .2s;
+}
+.mob-order-fab:active{transform:scale(.92)}
+.mob-order-fab .fab-badge{
+  position:absolute;top:-4px;right:-4px;
+  background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+
+/* ══ MOBILE KASIR VIEW ═══════════════════════════════════════ */
+/* Mobile: produk list full width, order sebagai slide-up sheet */
+.mob-order-sheet{
+  display:none;
+  position:fixed;inset:0;z-index:500;
+}
+.mob-sheet-veil{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);
+  backdrop-filter:blur(2px);
+}
+.mob-sheet-box{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#fff;border-radius:20px 20px 0 0;
+  max-height:92vh;overflow:hidden;
+  display:flex;flex-direction:column;
+  animation:sheetUp .25s cubic-bezier(.32,0,.67,0) forwards;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+.mob-sheet-handle{
+  width:36px;height:4px;background:var(--border2);border-radius:2px;
+  margin:10px auto 8px;flex-shrink:0;
+}
+.mob-sheet-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px 12px;flex-shrink:0;
+}
+.mob-sheet-head h3{font-size:16px;font-weight:700}
+.mob-sheet-close{
+  background:var(--surface2);border:none;color:var(--ink3);
+  width:30px;height:30px;border-radius:50%;font-size:16px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.mob-sheet-body{overflow-y:auto;flex:1}
+.mob-sheet-footer{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;background:#fff}
+
+/* ══ RESPONSIVE BREAKPOINTS ══════════════════════════════════ */
+@media(max-width:768px){
+  /* Hide desktop header nav, show mobile nav */
+  header nav{display:none}
+  header .qs-wrap{display:none}
+  header{padding:0 16px;gap:12px;height:52px}
+  .mob-nav{display:block}
+  .mob-order-fab{display:flex}
+
+  /* Main padding — account for bottom nav */
+  main{padding:12px 12px 80px}
+
+  /* KASIR: full width produk list */
+  .kasir-layout{grid-template-columns:1fr;gap:0}
+  .checkout-panel{display:none!important} /* hidden on mobile, use sheet */
+  .prod-panel{border-radius:var(--r)}
+  .prod-list{max-height:calc(100vh - 180px)}
+  .prod-panel-top{gap:6px}
+  .search-box{max-width:none;flex:1}
+
+  /* Product items more touch-friendly */
+  .prod-item{padding:10px 14px;gap:10px}
+  .pi-add{opacity:1;width:32px;height:32px;font-size:20px}
+  .pi-name{font-size:13px}
+
+  /* MASTER: stack layout */
+  .master-layout{grid-template-columns:1fr}
+  .page-hd{margin-bottom:16px}
+  .page-hd-text h1{font-size:18px}
+
+  /* RIWAYAT: 2x2 stats */
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .sc-val{font-size:20px}
+
+  /* Table: horizontal scroll */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.master-tbl{min-width:600px}
+  table.master-tbl#rekapTbl{min-width:700px}
+
+  /* Filter controls wrap */
+  .hist-controls{gap:6px;padding:10px 12px}
+  .date-input{font-size:12px;padding:6px 8px}
+  .btn-date-quick{font-size:11px;padding:5px 8px}
+
+  /* Order sheet items */
+  .mob-sheet-body .oi{padding:10px 14px}
+  .mob-sheet-body .oi-left{padding-right:8px}
+
+  /* Pay section in sheet */
+  .mob-sheet-footer .pay-section{padding:0}
+  .mob-sheet-footer .pay-row{font-size:12px;margin-bottom:6px}
+  .mob-sheet-footer .pay-row.grand .value{font-size:18px}
+  .mob-sheet-footer .btn-checkout{padding:12px;font-size:13px}
+  .mob-sheet-footer .btn-clear-order{padding:7px;font-size:11px}
+
+  /* Tabs smaller */
+  .fmt-tab{font-size:11px;padding:6px 10px}
+
+  /* Modal full screen on mobile */
+  .modal-veil{align-items:flex-end;padding:0}
+  .modal-box{max-width:100%!important;border-radius:20px 20px 0 0;max-height:95vh;overflow-y:auto}
+  .resi-modal-box{max-width:100%!important}
+
+  /* Size picker grid bigger touch targets */
+  .sz-btn{min-width:52px;padding:10px 16px}
+}
+
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .sc-val{font-size:18px}
+  main{padding:10px 10px 80px}
+  header{height:48px}
+}
 .toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:9999}
 .toast{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.1);animation:slideIn .2s ease;display:flex;align-items:center;gap:8px;min-width:210px;max-width:320px}
 @keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
@@ -301,7 +457,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 <body>
 
 <header>
-  <div class="logo">Gozeal Store<span>®</span></div>
+  <div class="logo">Drip<span>®</span></div>
   <nav>
     <button class="active" onclick="goPage('kasir',this)">Kasir</button>
     <button onclick="goPage('master',this)">Master Barang</button>
@@ -700,9 +856,74 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 <div class="toasts" id="toasts"></div>
 <div class="veil" id="veil" style="display:none"><div class="spin"></div></div>
 
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" id="mobNav">
+  <div class="mob-nav-inner">
+    <button class="mob-nav-btn active" onclick="goPageMob('kasir',this)" id="mobBtnKasir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Kasir
+      <span class="mob-nav-dot"></span>
+    </button>
+    <button class="mob-nav-btn" onclick="goPageMob('master',this)" id="mobBtnMaster">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      Produk
+      <span class="mob-nav-dot"></span>
+    </button>
+    <button class="mob-nav-btn" onclick="goPageMob('riwayat',this)" id="mobBtnRiwayat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Riwayat
+      <span class="mob-nav-dot"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE ORDER FAB -->
+<button class="mob-order-fab" id="mobOrderFab" onclick="openOrderSheet()">
+  🛒<span class="fab-badge" id="fabBadge" style="display:none">0</span>
+</button>
+
+<!-- MOBILE ORDER SHEET -->
+<div class="mob-order-sheet" id="mobOrderSheet" style="display:none">
+  <div class="mob-sheet-veil" onclick="closeOrderSheet()"></div>
+  <div class="mob-sheet-box">
+    <div class="mob-sheet-handle"></div>
+    <div class="mob-sheet-head">
+      <h3>Order <span id="mobOrderBadge" style="font-size:13px;color:var(--ink3);font-weight:500">0 item</span></h3>
+      <button class="mob-sheet-close" onclick="closeOrderSheet()">✕</button>
+    </div>
+    <div class="mob-sheet-body" id="mobOrderBody">
+      <div class="order-empty"><span class="oe-i">🛍</span>Tambahkan produk dari daftar</div>
+    </div>
+    <div class="mob-sheet-footer">
+      <div style="margin-bottom:10px">
+        <div class="pay-row"><span class="label" style="font-size:12px">Subtotal</span><span class="value" id="mobSubtotal">Rp 0</span></div>
+        <div class="pay-row discount"><span class="label" style="font-size:12px">Diskon</span><span class="value" id="mobDiskon">− Rp 0</span></div>
+        <div class="pay-row grand" style="margin-bottom:0"><span style="font-size:15px">Total</span><span class="value" id="mobTotal" style="font-size:18px">Rp 0</span></div>
+      </div>
+      <div style="position:relative;margin-bottom:10px">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:14px;color:var(--ink3)">Rp</span>
+        <input type="text" id="mobBayarIn" placeholder="Uang bayar…" autocomplete="off"
+          style="width:100%;padding:12px 12px 12px 34px;border:2px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:18px;font-weight:700;outline:none"
+          oninput="onMobBayarInput(this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doMobCheckout()}"/>
+      </div>
+      <div id="mobChangeRow" style="display:flex;justify-content:space-between;align-items:center;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;padding:10px 14px;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:600;color:#065f46;text-transform:uppercase;letter-spacing:.5px">Kembalian</span>
+        <span id="mobChange" style="font-family:var(--mono);font-size:18px;font-weight:700;color:#059669">Rp 0</span>
+      </div>
+      <button onclick="doMobCheckout()" style="width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">
+        Proses &amp; Cetak Resi
+      </button>
+      <button onclick="clearOrder();closeOrderSheet()" style="width:100%;padding:9px;margin-top:8px;background:transparent;color:var(--ink3);border:1px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:12px;cursor:pointer">
+        Kosongkan Order
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzig7o0xUn__Df-xMOnJ1JKIVyp_Vt5mIr9CMgvY7RypKSVtfZdpZb15dpDPpipKMwEAg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytwdtQLONaT9h4SNv-AE7-t6podzhGCKMnoTnJz4umHQBVSYWDTgejgZD7v-yGYXD_Zg/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -892,6 +1113,12 @@ function confirmSP(){
   else order.push({key:key,kode:spItem.kode,nama:spItem.nama,size:spSize,warna:(spItem.warna&&spItem.warna!=='undefined')?spItem.warna:'',harga:spItem.harga,qty:spQtyN,disType:'rp',disVal:0,disAmt:0,subtotal:spItem.harga*spQtyN});
   renderOrder();closeSP();
   toast(spItem.nama+' ('+spSize+') ditambahkan');
+  // Sync mobile fab badge
+  var n=order.reduce(function(a,b){return a+b.qty;},0);
+  var badge=document.getElementById('fabBadge');
+  if(badge){badge.style.display=n>0?'flex':'none';badge.textContent=n;}
+  // Auto open sheet on mobile if first item
+  if(isMobile()&&order.length===1) setTimeout(openOrderSheet,300);
 }
 
 // ══ ORDER ══════════════════════════════════════════════════════
@@ -1082,7 +1309,7 @@ function showResi(d){
     var disInfo=i.disAmt>0?' <span style="color:#d97706">-'+idr(i.disAmt)+'</span>':'';
     return '<div style="margin-bottom:6px"><div class="resi-row"><span style="font-weight:600">'+i.nama+'</span><span class="rv">'+idr(i.subtotal)+disInfo+'</span></div><div style="font-size:10px;color:#6b7280;margin-bottom:3px">'+(meta?meta+' · ':'')+'×'+i.qty+' @ '+idr(i.harga)+'</div></div>';
   }).join('');
-  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">Gozeal</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
+  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">DRIP</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Fashion Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
   document.getElementById('resiContent').innerHTML=lastResiHtml;
   document.getElementById('resiModal').style.display='flex';
 }
@@ -1608,8 +1835,179 @@ function sortRekap(th){
   renderRekapRows(rekapData,q);
 }
 
+// ══ MOBILE ═════════════════════════════════════════════════════
+var isMobile = function(){ return window.innerWidth <= 768; };
+
+function goPageMob(name, btn){
+  // Update desktop nav too
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('nav button, .mob-nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('pg-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  // Also sync desktop nav
+  var desktopBtns = document.querySelectorAll('header nav button');
+  var idx = {kasir:0,master:1,riwayat:2}[name];
+  if(desktopBtns[idx]) desktopBtns[idx].classList.add('active');
+  if(name==='master') loadMaster();
+  if(name==='riwayat') loadHistory();
+  // Show/hide FAB
+  var fab = document.getElementById('mobOrderFab');
+  if(fab) fab.style.display = (name==='kasir' && isMobile()) ? 'flex' : 'none';
+}
+
+function openOrderSheet(){
+  syncMobOrder();
+  document.getElementById('mobOrderSheet').style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(function(){
+    var inp=document.getElementById('mobBayarIn');
+    if(inp) inp.focus();
+  },300);
+}
+function closeOrderSheet(){
+  document.getElementById('mobOrderSheet').style.display='none';
+  document.body.style.overflow='';
+}
+
+function syncMobOrder(){
+  // Sync order items to mobile sheet
+  var el=document.getElementById('mobOrderBody');
+  if(!el)return;
+  if(!order.length){
+    el.innerHTML='<div class="order-empty"><span class="oe-i">🛍</span>Tambahkan produk dari daftar</div>';
+  } else {
+    el.innerHTML=order.map(function(item){
+      var warna=item.warna&&item.warna!=='undefined'?item.warna:'';
+      var meta=[item.size,warna].filter(Boolean).join(' · ');
+      var hasDis=item.disAmt>0;
+      var hargaAfterDis=hasDis?Math.round(item.subtotal/item.qty):item.harga;
+      var priceHtml=hasDis
+        ?'<div class="oi-price-row"><span class="oi-price has-dis">'+idr(item.harga)+'</span><span class="oi-price-after">'+idr(hargaAfterDis)+'</span><span class="oi-dis-badge">-'+(item.disType==='pct'?item.disVal+'%':idr(item.disVal))+'</span></div>'
+        :'<div class="oi-price-row"><span class="oi-price">'+idr(item.harga)+'</span></div>';
+      var dRp=item.disType==='rp'?'on':'',dPct=item.disType==='pct'?'on':'';
+      return '<div class="oi">'
+        +'<div class="oi-left">'
+          +'<div class="oi-name">'+item.nama+'</div>'
+          +(meta?'<div class="oi-meta">'+meta+'</div>':'')
+          +priceHtml
+          +'<div class="oi-dis-row">'
+            +'<div class="oi-dis-toggle">'
+              +'<button class="'+dRp+'" onclick="setItemDis(\''+item.key+'\',\'rp\');syncMobOrder()">Rp</button>'
+              +'<button class="'+dPct+'" onclick="setItemDis(\''+item.key+'\',\'pct\');syncMobOrder()">%</button>'
+            +'</div>'
+            +'<input class="oi-dis-input" type="number" min="0"'+(item.disType==='pct'?' max="100"':'')+' value="'+(item.disVal||'')+'" placeholder="0" oninput="updateItemDisMob(\''+item.key+'\',this.value)"/>'
+          +'</div>'
+        +'</div>'
+        +'<div class="oi-qty"><span class="oi-qty-label">Qty</span><div class="oi-qty-ctrl"><button class="oi-qbtn" onclick="adjOrderQty(\''+item.key+'\',-1);syncMobOrder()">−</button><span class="oi-qval">'+item.qty+'</span><button class="oi-qbtn" onclick="adjOrderQty(\''+item.key+'\',1);syncMobOrder()">+</button></div></div>'
+        +'<div class="oi-right"><span class="oi-sub-label">Subtotal</span><span class="oi-sub-val">'+idr(item.subtotal)+'</span><button class="oi-del" onclick="removeOrderItem(\''+item.key+'\');syncMobOrder()">✕</button></div>'
+      +'</div>';
+    }).join('');
+  }
+  // Sync totals
+  var sub=order.reduce(function(a,b){return a+b.harga*b.qty;},0);
+  var dis=order.reduce(function(a,b){return a+(b.disAmt||0);},0);
+  var total=Math.max(0,sub-dis);
+  var n=order.reduce(function(a,b){return a+b.qty;},0);
+  document.getElementById('mobSubtotal').textContent=idr(sub);
+  document.getElementById('mobDiskon').textContent=dis>0?'− '+idr(dis):'− Rp 0';
+  document.getElementById('mobTotal').textContent=idr(total);
+  document.getElementById('mobOrderBadge').textContent=n+' item';
+  // Update FAB badge
+  var badge=document.getElementById('fabBadge');
+  if(badge){badge.style.display=n>0?'flex':'none';badge.textContent=n;}
+  calcMobChange();
+}
+
+function updateItemDisMob(key,val){
+  updateItemDis(key,val);
+  // Update just the price row in mob sheet
+  syncMobOrder();
+}
+
+function onMobBayarInput(inp){
+  var n=Number(inp.value.replace(/[^\d]/g,''))||0;
+  inp.value=n?n.toLocaleString('id-ID'):'';
+  calcMobChange();
+}
+function parseMobBayar(){
+  return Number((document.getElementById('mobBayarIn').value||'').replace(/\./g,'').replace(/,/g,''))||0;
+}
+function calcMobChange(){
+  var total=order.reduce(function(a,b){return a+b.subtotal;},0);
+  var bayar=parseMobBayar();
+  var row=document.getElementById('mobChangeRow');
+  var val=document.getElementById('mobChange');
+  if(!bayar){val.textContent='Rp 0';if(row){row.style.background='#ecfdf5';row.style.borderColor='#6ee7b7';}val.style.color='#059669';return;}
+  var kmbl=bayar-total;
+  if(kmbl>=0){val.textContent=idr(kmbl);if(row){row.style.background='#ecfdf5';row.style.borderColor='#6ee7b7';}val.style.color='#059669';}
+  else{val.textContent='− '+idr(Math.abs(kmbl));if(row){row.style.background='#fef2f2';row.style.borderColor='#fecaca';}val.style.color='var(--red)';}
+}
+
+function doMobCheckout(){
+  // Sync bayar from mobile input back to desktop input (reuse doCheckout logic)
+  var mobBayar=document.getElementById('mobBayarIn').value;
+  document.getElementById('bayarIn').value=mobBayar;
+  var kasir=document.getElementById('kasirName').value.trim()||'Kasir';
+
+  if(!order.length){toast('Order kosong!','err');return;}
+  var sub=order.reduce(function(a,b){return a+b.harga*b.qty;},0);
+  var dis=order.reduce(function(a,b){return a+(b.disAmt||0);},0);
+  var grand=Math.max(0,sub-dis);
+  var bayar=parseMobBayar();
+  if(bayar<grand){toast('Uang bayar kurang!','err');document.getElementById('mobBayarIn').focus();return;}
+
+  var noTrx='TRX-'+Date.now();
+  var now=new Date();
+  var wibTime=new Date(now.getTime()+(7*60+now.getTimezoneOffset())*60000);
+  function pad(n){return n.toString().padStart(2,'0');}
+  var tanggalServer=wibTime.getFullYear()+'-'+pad(wibTime.getMonth()+1)+'-'+pad(wibTime.getDate())+' '+pad(wibTime.getHours())+':'+pad(wibTime.getMinutes())+':'+pad(wibTime.getSeconds());
+  var bulanId=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  var tanggalDisplay=pad(wibTime.getDate())+' '+bulanId[wibTime.getMonth()]+' '+wibTime.getFullYear()+', '+pad(wibTime.getHours())+':'+pad(wibTime.getMinutes());
+
+  var rData={noTransaksi:noTrx,kasir:kasir,tanggal:tanggalDisplay,totalHarga:sub,diskon:dis,grandTotal:grand,bayar:bayar,kembalian:bayar-grand,items:order.map(function(x){return{kode:x.kode,nama:x.nama,size:x.size,warna:x.warna||'',qty:x.qty,harga:x.harga,disAmt:x.disAmt||0,subtotal:x.subtotal};})};
+  var payload={noTransaksi:noTrx,kasir:kasir,tanggalServer:tanggalServer,totalItem:order.reduce(function(a,b){return a+b.qty;},0),totalHarga:sub,diskon:dis,bayar:bayar,items:rData.items};
+
+  closeOrderSheet();
+  showVeil(true);
+  api('simpanTransaksi',{transaksi:payload}).then(function(res){
+    showVeil(false);
+    if(res.success){
+      toast('Transaksi berhasil!');
+      clearOrder();
+      document.getElementById('mobBayarIn').value='';
+      showResi(rData);
+    } else {
+      toast(res.error||res.message||'Gagal simpan','err');
+    }
+  });
+}
+
+// Override renderOrder to also sync mobile
+var _origRenderOrder = null;
+window.addEventListener('DOMContentLoaded', function(){
+  _origRenderOrder = renderOrder;
+});
+
+// Patch goPage to also update mobile nav
+var _origGoPage = goPage;
+function goPage(name, btn){
+  _origGoPage(name, btn);
+  // sync mobile nav
+  document.querySelectorAll('.mob-nav-btn').forEach(function(b){b.classList.remove('active');});
+  var map={kasir:'mobBtnKasir',master:'mobBtnMaster',riwayat:'mobBtnRiwayat'};
+  var mobBtn=document.getElementById(map[name]);
+  if(mobBtn) mobBtn.classList.add('active');
+  var fab=document.getElementById('mobOrderFab');
+  if(fab) fab.style.display=(name==='kasir'&&isMobile())?'flex':'none';
+}
+
 // ══ INIT ═══════════════════════════════════════════════════════
 window.onload = function() {
+  // Set initial FAB visibility
+  if(isMobile()){
+    var fab=document.getElementById('mobOrderFab');
+    if(fab) fab.style.display='flex';
+  }
   api('initSheets', {}).then(function() { loadCatalog(); });
 };
 </script>
