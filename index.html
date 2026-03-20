@@ -754,6 +754,10 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
   <!-- Tab: Detail Produk Keluar -->
   <div id="hist-tab-detail" class="card" style="display:none">
+    <div class="card-header">
+      <h3>Detail Produk Keluar</h3>
+      <button class="btn-print-rekap" onclick="printDetailProduk()">🖨 Print Rekap Restok</button>
+    </div>
     <div class="tbl-wrap">
       <table class="master-tbl">
         <thead>
@@ -966,7 +970,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyINuGUKB5krxGaCFbUUteSTdCObEwcldtLQTd6pylYFMDFWayGH4L72sksRkfF7w1vnA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAtbDmRHGXfBOIeNhiovf8Gr9eQrxZACREwi1U4mrhxhXpNAo_1VGneQ3LoB24114kMQ/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -1299,7 +1303,7 @@ function doConfirmSP(){
       warna    : (item.warna && item.warna!=='undefined' && item.warna!=='-') ? item.warna : '',
       harga    : item.harga,
       qty      : qty,
-      disType  : 'rp',
+      disType  : 'pct',
       disVal   : 0,
       disAmt   : 0,
       subtotal : item.harga * qty
@@ -1510,55 +1514,68 @@ function doCheckout(){
 function showResi(d){
   var itemsHtml=(d.items||[]).map(function(i){
     var warna=i.warna&&i.warna!=='undefined'&&i.warna!=='-'?i.warna:'';
-    var size=i.size&&i.size!=='-'&&i.size!=='Free Size'?i.size:(i.size==='Free Size'?'Free':'');
+    var size=i.size&&i.size!=='-'&&i.size!=='Free Size'?i.size:(i.size==='Free Size'?'':i.size||'');
     var meta=[size,warna].filter(Boolean).join(' / ');
-    var disAmt=i.disAmt||0;
+    var disAmt=Number(i.disAmt)||0;
+    var qty=Number(i.qty)||1;
+    var harga=Number(i.harga)||0;
+    var subtotal=Number(i.subtotal)||0;
+    var baseTotal=qty*harga;
+    // Hitung persen diskon
+    var disPct=disAmt>0&&baseTotal>0?Math.round(disAmt/baseTotal*100):0;
+
     return ''
-      // Nama produk + size di kanan
-      +'<div class="row" style="margin-bottom:1px">'
-        +'<span class="item-name l">'+i.nama+'</span>'
-        +(meta?'<span class="r small gray">'+meta+'</span>':'')
+      // Nama + size/warna di kanan
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1px">'
+        +'<span style="font-weight:700;font-size:11px;flex:1;word-break:break-word">'+i.nama+'</span>'
+        +(meta?'<span style="font-size:9px;color:#888;margin-left:4px;white-space:nowrap">'+meta+'</span>':'')
       +'</div>'
-      // Qty × harga = total
-      +'<div class="row item-detail">'
-        +'<span class="l">'+i.qty+' × '+idr(i.harga)+'</span>'
-        +'<span class="r">'+idr(i.qty*i.harga)+'</span>'
+      // Qty × harga normal
+      +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#666;padding-left:2px;margin-bottom:1px">'
+        +'<span>'+qty+' × '+idr(harga)+'</span>'
+        +'<span>'+idr(baseTotal)+'</span>'
       +'</div>'
-      // Diskon per item (hanya kalau ada)
+      // Diskon (kalau ada) — tampilkan persen
       +(disAmt>0
-        ?'<div class="row item-detail amber">'
-          +'<span class="l">Diskon</span>'
-          +'<span class="r">- '+idr(disAmt)+'</span>'
+        ?'<div style="display:flex;justify-content:space-between;font-size:10px;padding-left:2px;margin-bottom:1px">'
+          +'<span>Diskon'+( disPct>0?' ('+disPct+'%)':'')+'</span>'
+          +'<span>- '+idr(disAmt)+'</span>'
         +'</div>'
         :'')
-      // Subtotal per item
-      +'<div class="row" style="border-top:1px solid #eee;padding-top:1px;margin-bottom:6px">'
-        +'<span class="l small gray">Subtotal</span>'
-        +'<span class="r item-sub">'+idr(i.subtotal)+'</span>'
+      // Subtotal per item — harga akhir
+      +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;border-top:1px dashed #ddd;padding-top:2px;margin-top:1px;margin-bottom:8px">'
+        +'<span style="font-size:9px;font-weight:400;color:#888">= Subtotal</span>'
+        +'<span>'+idr(subtotal)+'</span>'
       +'</div>';
   }).join('');
 
   if(!(d.items&&d.items.length)){
-    itemsHtml='<div class="center small gray" style="padding:6px 0">Detail item tidak tersedia</div>';
+    itemsHtml='<div style="text-align:center;font-size:10px;color:#aaa;padding:6px 0;margin-bottom:4px">Detail item tidak tersedia</div>';
   }
 
   lastResiHtml=''
-    +'<div class="center big">Gozeal Store</div>'
-    +'<div class="center small gray" style="letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Fashion Store</div>'
-    +'<hr/>'
-    +'<div class="row small"><span class="l gray">No.</span><span class="r" style="font-size:9px">'+d.noTransaksi+'</span></div>'
-    +'<div class="row small"><span class="l gray">Tanggal</span><span class="r">'+d.tanggal+'</span></div>'
-    +'<div class="row small" style="margin-bottom:0"><span class="l gray">Kasir</span><span class="r">'+d.kasir+'</span></div>'
-    +'<hr/>'
+    // Header
+    +'<div style="text-align:center;font-family:Arial,sans-serif;font-size:18px;font-weight:900;letter-spacing:5px;text-transform:uppercase">GOZEAL</div>'
+    +'<div style="text-align:center;font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">
+  Store</div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:6px 0"/>'
+    // Info transaksi
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span style="color:#888">No.</span><span style="font-size:9px">'+d.noTransaksi+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span style="color:#888">Tanggal</span><span>'+d.tanggal+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:0"><span style="color:#888">Kasir</span><span>'+d.kasir+'</span></div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:6px 0"/>'
+    // Items
     +itemsHtml
-    +'<hr/>'
-    +'<div class="row small" style="margin-bottom:3px"><span class="l gray">Subtotal</span><span class="r">'+idr(d.totalHarga)+'</span></div>'
-    +(d.diskon>0?'<div class="row small amber" style="margin-bottom:3px"><span class="l">Total Diskon</span><span class="r">- '+idr(d.diskon)+'</span></div>':'')
-    +'<div class="row total-row"><span class="l">TOTAL</span><span class="r">'+idr(d.grandTotal)+'</span></div>'
-    +'<hr/>'
-    +'<div class="row small" style="margin-bottom:2px"><span class="l gray">Bayar</span><span class="r">'+idr(d.bayar)+'</span></div>'
-    +'<div class="row small"><span class="l gray">Kembalian</span><span class="r bold green">'+idr(d.kembalian)+'</span></div>'
-    +'<div class="footer">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli<br/>tidak dapat dikembalikan.</div>';
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:6px 0"/>'
+    // Summary
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:#888">Subtotal</span><span>'+idr(d.totalHarga)+'</span></div>'
+    +(d.diskon>0?'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span>Total Diskon</span><span>- '+idr(d.diskon)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:900;margin-bottom:0"><span>TOTAL</span><span>'+idr(d.grandTotal)+'</span></div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:6px 0"/>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span style="color:#888">Bayar</span><span>'+idr(d.bayar)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:0"><span style="color:#888">Kembalian</span><span>'+idr(d.kembalian)+'</span></div>'
+    // Footer
+    +'<div style="text-align:center;margin-top:12px;font-size:9px;color:#aaa;line-height:1.8">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
 
   document.getElementById('resiContent').innerHTML=lastResiHtml;
   document.getElementById('resiModal').style.display='flex';
@@ -1874,17 +1891,20 @@ document.addEventListener('keydown', function(e){
   var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
   var modKey = isMac ? e.metaKey : e.ctrlKey;
 
-  // Cmd/Ctrl + D → fokus diskon item pertama di order
+  // Cmd/Ctrl + D → switch semua item ke diskon % dan fokus input diskon pertama
   if(modKey && e.key==='d'){
     e.preventDefault();
-    var firstDis=document.querySelector('.oi-dis-input');
-    if(firstDis){
-      firstDis.focus();
-      firstDis.select();
-      toast('Diskon: ketik angka lalu Tab ke item berikutnya','info');
-    } else {
-      toast('Belum ada item di order','err');
-    }
+    if(!order.length){ toast('Belum ada item di order','err'); return; }
+    // Switch semua item ke %
+    order.forEach(function(item){
+      if(item.disType!=='pct'){ item.disType='pct'; item.disVal=0; recalcItem(item); }
+    });
+    renderOrder();
+    // Fokus input diskon pertama
+    setTimeout(function(){
+      var firstDis=document.querySelector('.oi-dis-input');
+      if(firstDis){ firstDis.focus(); firstDis.select(); }
+    }, 50);
     return;
   }
 
@@ -2084,6 +2104,104 @@ function renderDetailTable(data){
       +'<td class="tc-price">'+idr(r.subtotal)+'</td>'
     +'</tr>';
   }).join('');
+}
+
+function printDetailProduk(){
+  if(!detailFiltered||!detailFiltered.length){toast('Tidak ada data untuk diprint','err');return;}
+
+  // Ambil info periode dari filter
+  var from=document.getElementById('filterDateFrom').value;
+  var to=document.getElementById('filterDateTo').value;
+  var bulanS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  function fmtTgl(s){if(!s)return '';var p=s.split('-');return parseInt(p[2])+' '+bulanS[parseInt(p[1])-1]+' '+p[0];}
+  var periodeStr=from&&to&&from===to?fmtTgl(from):from&&to?fmtTgl(from)+' – '+fmtTgl(to):'Semua';
+
+  // Sort by tanggal desc
+  var sorted=[...detailFiltered].sort(function(a,b){return String(b.tanggal||'').localeCompare(String(a.tanggal||''));});
+  var totalQty=sorted.reduce(function(a,b){return a+Number(b.qty||0);},0);
+  var totalPendapatan=sorted.reduce(function(a,b){return a+Number(b.subtotal||0);},0);
+
+  function parseTgl(t){
+    if(!t)return '-';
+    var ts=String(t).replace('T',' ');
+    var m=ts.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+    if(m)return parseInt(m[3])+' '+bulanS[parseInt(m[2])-1]+' '+m[1]+', '+m[4]+':'+m[5];
+    return ts.slice(0,16);
+  }
+
+  var rows=sorted.map(function(r,i){
+    var disStr=Number(r.diskonItem)>0?'Rp '+Number(r.diskonItem).toLocaleString('id-ID'):'—';
+    var bg=i%2===0?'#fff':'#f9fafb';
+    return '<tr style="background:'+bg+';border-bottom:1px solid #e5e7eb">'
+      +'<td style="padding:5px 8px;font-size:11px;white-space:nowrap;color:#6b7280">'+parseTgl(r.tanggal)+'</td>'
+      +'<td style="padding:5px 8px;font-family:monospace;font-size:10px;color:#6b7280">'+( r.noTransaksi||'—')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11px">'+( r.kasir||'—')+'</td>'
+      +'<td style="padding:5px 8px;font-family:monospace;font-size:10px">'+( r.kodeBarang||'—')+'</td>'
+      +'<td style="padding:5px 8px;font-weight:600;font-size:12px">'+( r.namaBarang||'—')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;font-family:monospace;font-size:11px">'+( r.size||'—')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11px;color:#6b7280;font-style:italic">'+( r.warna&&r.warna!=='-'?r.warna:'—')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;font-weight:700;font-size:14px">'+r.qty+'</td>'
+      +'<td style="padding:5px 8px;font-family:monospace;font-size:11px">Rp '+Number(r.hargaSatuan||0).toLocaleString('id-ID')+'</td>'
+      +'<td style="padding:5px 8px;font-size:11px;color:#d97706">'+disStr+'</td>'
+      +'<td style="padding:5px 8px;font-family:monospace;font-size:11px;font-weight:600">Rp '+Number(r.subtotal||0).toLocaleString('id-ID')+'</td>'
+      +'<td style="padding:5px 8px;text-align:center"><input type="checkbox" style="width:13px;height:13px"/></td>'
+    +'</tr>';
+  }).join('');
+
+  var html='<html><head><meta charset="UTF-8"/>'
+    +'<style>'
+    +'@page{size:A4 landscape;margin:12mm}'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,sans-serif;font-size:12px;color:#000}'
+    +'table{width:100%;border-collapse:collapse}'
+    +'thead tr{background:#111827;color:#fff}'
+    +'thead th{padding:7px 8px;text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}'
+    +'tfoot tr{background:#f3f4f6;font-weight:700}'
+    +'tfoot td{padding:7px 8px;font-size:12px}'
+    +'</style></head><body>'
+    // Header
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+      +'<div>'
+        +'<div style="font-size:22px;font-weight:900;letter-spacing:4px;text-transform:uppercase">Gozeal Store®</div>'
+        +'<div style="font-size:12px;color:#6b7280;margin-top:2px">REKAP PRODUK KELUAR — CATATAN RESTOK GUDANG</div>'
+      +'</div>'
+      +'<div style="text-align:right;font-size:11px;color:#6b7280">'
+        +'<div style="font-size:13px;font-weight:700;color:#111;background:#f3f4f6;padding:5px 12px;border-radius:4px">Periode: '+periodeStr+'</div>'
+        +'<div style="margin-top:4px">Dicetak: '+new Date().toLocaleString('id-ID')+'</div>'
+      +'</div>'
+    +'</div>'
+    // Table
+    +'<table>'
+    +'<thead><tr>'
+      +'<th>Tanggal &amp; Jam</th><th>No. Transaksi</th><th>Kasir</th>'
+      +'<th>Kode</th><th>Nama Produk</th><th>Size</th><th>Warna</th>'
+      +'<th style="text-align:center">Qty</th><th>Harga Satuan</th>'
+      +'<th>Diskon</th><th>Subtotal</th><th style="text-align:center">✓</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'<tfoot><tr>'
+      +'<td colspan="7" style="text-align:right;padding:8px">TOTAL</td>'
+      +'<td style="text-align:center;font-size:16px;padding:8px">'+totalQty+' pcs</td>'
+      +'<td colspan="2" style="padding:8px"></td>'
+      +'<td style="font-family:monospace;padding:8px">Rp '+totalPendapatan.toLocaleString('id-ID')+'</td>'
+      +'<td></td>'
+    +'</tr></tfoot>'
+    +'</table>'
+    +'<div style="margin-top:16px;font-size:10px;color:#9ca3af;display:flex;justify-content:space-between">'
+      +'<span>Total '+sorted.length+' baris · '+totalQty+' item</span>'
+    +'</div>'
+    +'</body></html>';
+
+  var iframe=document.createElement('iframe');
+  iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:297mm;height:210mm;border:none';
+  document.body.appendChild(iframe);
+  var doc=iframe.contentDocument||iframe.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
+  setTimeout(function(){
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(function(){document.body.removeChild(iframe);},1500);
+  },500);
 }
 
 function previewResi(r){
