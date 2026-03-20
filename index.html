@@ -268,20 +268,48 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 .modal-close:hover{background:rgba(255,255,255,.2)}
 .modal-body{padding:20px}
 .modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--surface2)}
-#sizePickerModal #spModalBox{max-width:420px}
-.sp-product{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2)}
+#sizePickerModal #spModalBox{max-width:380px}
+.sp-product{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2)}
 .sp-cat{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
-.sp-name{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.sp-name{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
 .sp-price{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent)}
 .sp-warna{font-size:12px;color:var(--ink3);margin-top:2px}
-.size-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.sz-btn{padding:8px 14px;border-radius:5px;border:1.5px solid var(--border);background:transparent;font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--ink2);min-width:48px;text-align:center}
-.sz-btn:hover{border-color:var(--primary);color:var(--primary)}
-.sz-btn.sel{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* Size list — vertikal bukan grid */
+.size-list{display:flex;flex-direction:column;gap:0;margin-bottom:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden}
+.sz-btn{
+  width:100%;padding:11px 16px;
+  border:none;border-bottom:1px solid var(--border);
+  background:transparent;
+  font-family:var(--mono);font-size:14px;font-weight:600;
+  cursor:pointer;transition:background .1s;
+  color:var(--ink2);text-align:left;
+  display:flex;align-items:center;justify-content:space-between;
+  outline:none;
+}
+.sz-btn:last-child{border-bottom:none}
+.sz-btn:hover{background:#f0f7ff}
+.sz-btn.focused{background:#eff6ff;color:var(--accent)}
+.sz-btn.sel{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sz-btn.sel:hover{background:#1f2937}
+.sz-btn .sz-check{font-size:14px;opacity:0}
+.sz-btn.sel .sz-check{opacity:1}
+
+/* Qty row inline */
+.sp-qty-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-top:1px solid var(--border);
+  background:var(--surface2);
+}
+.sp-qty-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3)}
 .qty-ctrl{display:flex;align-items:center;gap:12px}
-.qty-ctrl button{width:34px;height:34px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qty-ctrl button{width:32px;height:32px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .qty-ctrl button:hover{background:var(--primary);border-color:var(--primary);color:#fff}
 .qty-num{font-family:var(--mono);font-size:18px;font-weight:700;min-width:36px;text-align:center}
+
+/* Keyboard hint */
+.sp-kbd-hint{padding:6px 16px;font-size:10px;color:var(--ink4);text-align:center;background:var(--surface2);border-top:1px solid var(--border)}
+.sp-kbd-hint kbd{background:var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:9px;color:var(--ink3)}
 .resi-modal-box{max-width:380px!important}
 .resi-wrap{font-family:var(--mono);font-size:12px;line-height:1.8}
 .resi-row{display:flex;justify-content:space-between;gap:8px;font-size:12px}
@@ -435,8 +463,8 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
   .modal-box{max-width:100%!important;border-radius:20px 20px 0 0;max-height:95vh;overflow-y:auto}
   .resi-modal-box{max-width:100%!important}
 
-  /* Size picker grid bigger touch targets */
-  .sz-btn{min-width:52px;padding:10px 16px}
+  /* Size picker vertical list mobile */
+  .sz-btn{padding:12px 16px;font-size:14px}
 }
 
 @media(max-width:480px){
@@ -821,23 +849,31 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
       <div class="sp-price" id="sp_price"></div>
       <div class="sp-warna" id="sp_warna"></div>
     </div>
-    <div class="modal-body" style="padding:20px 24px">
-      <div id="spSizeSection" style="margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Pilih Size</div>
-        <div class="size-grid" id="spSizeGrid"></div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Jumlah</div>
-        <div class="qty-ctrl">
-          <button onclick="adjSpQty(-1)">−</button>
-          <span class="qty-num" id="spQtyVal">1</span>
-          <button onclick="adjSpQty(1)">+</button>
-        </div>
+    <!-- Size list vertikal -->
+    <div id="spSizeSection">
+      <div id="spSizeGrid"></div>
+    </div>
+    <!-- Qty row -->
+    <div class="sp-qty-row">
+      <span class="sp-qty-label">Jumlah</span>
+      <div class="qty-ctrl">
+        <button onclick="adjSpQty(-1)" tabindex="-1">−</button>
+        <span class="qty-num" id="spQtyVal">1</span>
+        <button onclick="adjSpQty(1)" tabindex="-1">+</button>
       </div>
     </div>
-    <div class="modal-footer">
+    <!-- Keyboard hint -->
+    <div class="sp-kbd-hint">
+      <kbd>↑</kbd><kbd>↓</kbd> pilih size &nbsp;·&nbsp;
+      <kbd>+</kbd><kbd>−</kbd> qty &nbsp;·&nbsp;
+      <kbd>Enter</kbd> tambah &nbsp;·&nbsp;
+      <kbd>Esc</kbd> batal
+    </div>
+    <div class="modal-footer" style="padding:10px 16px">
       <button class="btn btn-ghost" onclick="closeSP()">Batal</button>
-      <button class="btn btn-primary" id="btnAddToOrder" onclick="confirmSP()" disabled>Tambah ke Order</button>
+      <button class="btn btn-primary" id="btnAddToOrder" onclick="confirmSP()" disabled>
+        Tambah ke Order <kbd style="font-size:10px;opacity:.6;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:3px;font-family:var(--mono)">Enter</kbd>
+      </button>
     </div>
   </div>
 </div>
@@ -925,7 +961,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_mR0tnzweIuhAPka_KHw128BUMpZEDhaw9MmwHcrt2XOjrF2RgZvFsASNvoy-iBaSWg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCYJloIZ1lr1UoeOYLnnaUFRSm8Z3LFDxjehQfZca-QTy1clthT8F1tIcW6lhVbJvBQw/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -1098,26 +1134,121 @@ function qsClose(){document.getElementById('qsDrop').style.display='none';qsFocu
 document.addEventListener('click',function(e){if(!document.getElementById('qsWrap').contains(e.target))qsClose();});
 
 // ══ SIZE PICKER ════════════════════════════════════════════════
+var spFocusIdx = -1;
+
 function openSP(kode){
   var b=catalog.find(function(x){return x.kode===kode;});
   if(!b)return;
-  spItem=b;spSize=null;spQtyN=1;
+  spItem=b;spSize=null;spQtyN=1;spFocusIdx=-1;
   document.getElementById('sp_cat').textContent=b.kategori||'';
   document.getElementById('sp_name').textContent=b.nama;
   document.getElementById('sp_price').textContent=idr(b.harga);
   document.getElementById('sp_warna').textContent=b.warna?'Warna: '+b.warna:'';
   document.getElementById('spQtyVal').textContent=1;
+  document.getElementById('btnAddToOrder').disabled=true;
+
   var sizes=b.tipeSize==='apparel'?SZ_APPAREL:b.tipeSize==='footwear'?SZ_SHOE:[];
   var sec=document.getElementById('spSizeSection');
-  if(!sizes.length){sec.style.display='none';spSize='Free Size';document.getElementById('btnAddToOrder').disabled=false;}
-  else{sec.style.display='block';document.getElementById('spSizeGrid').innerHTML=sizes.map(function(s){return '<button class="sz-btn" onclick="pickSz(\''+s+'\',this)">'+s+'</button>';}).join('');document.getElementById('btnAddToOrder').disabled=true;}
+
+  if(!sizes.length){
+    // Free size — tidak perlu pilih, langsung enable
+    sec.style.display='none';
+    spSize='Free Size';
+    spFocusIdx=0;
+    document.getElementById('btnAddToOrder').disabled=false;
+  } else {
+    sec.style.display='block';
+    // Render sebagai vertical list
+    document.getElementById('spSizeGrid').innerHTML=
+      '<div class="size-list">'+
+      sizes.map(function(s,i){
+        return '<button class="sz-btn" id="szb-'+i+'" onclick="pickSzIdx('+i+')" tabindex="-1">'
+          +'<span>'+s+'</span>'
+          +'<span class="sz-check">✓</span>'
+        +'</button>';
+      }).join('')+
+      '</div>';
+    // Auto-focus item pertama
+    spFocusIdx=0;
+    setSzFocus(0);
+  }
+
   document.getElementById('sizePickerModal').style.display='flex';
+
+  // Attach keyboard handler
+  document.addEventListener('keydown', spKeyHandler);
 }
-function pickSz(s,btn){document.querySelectorAll('.sz-btn').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');spSize=s;document.getElementById('btnAddToOrder').disabled=false;}
-function adjSpQty(d){spQtyN=Math.max(1,spQtyN+d);document.getElementById('spQtyVal').textContent=spQtyN;}
-function closeSP(){document.getElementById('sizePickerModal').style.display='none';spItem=null;}
+
+function setSzFocus(idx){
+  var sizes=spItem.tipeSize==='apparel'?SZ_APPAREL:spItem.tipeSize==='footwear'?SZ_SHOE:[];
+  document.querySelectorAll('.sz-btn').forEach(function(b,i){
+    b.classList.toggle('focused', i===idx && !b.classList.contains('sel'));
+  });
+  var btn=document.getElementById('szb-'+idx);
+  if(btn) btn.scrollIntoView({block:'nearest'});
+}
+
+function pickSzIdx(idx){
+  var sizes=spItem.tipeSize==='apparel'?SZ_APPAREL:spItem.tipeSize==='footwear'?SZ_SHOE:[];
+  spSize=sizes[idx];
+  spFocusIdx=idx;
+  document.querySelectorAll('.sz-btn').forEach(function(b,i){
+    b.classList.toggle('sel', i===idx);
+    b.classList.remove('focused');
+  });
+  document.getElementById('btnAddToOrder').disabled=false;
+}
+
+function spKeyHandler(e){
+  var sizes=spItem?(spItem.tipeSize==='apparel'?SZ_APPAREL:spItem.tipeSize==='footwear'?SZ_SHOE:[]):[];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    if(!sizes.length) return;
+    if(e.key==='ArrowDown') spFocusIdx=Math.min(spFocusIdx+1, sizes.length-1);
+    else spFocusIdx=Math.max(spFocusIdx-1, 0);
+    // Auto-select on navigate
+    pickSzIdx(spFocusIdx);
+    setSzFocus(spFocusIdx);
+  } else if(e.key==='+' || e.key==='='){
+    e.preventDefault();
+    adjSpQty(1);
+  } else if(e.key==='-'){
+    e.preventDefault();
+    adjSpQty(-1);
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    if(spSize) confirmSP();
+  } else if(e.key==='Escape'){
+    e.preventDefault();
+    closeSP();
+  }
+  // Number keys 1-9 for quick size select
+  var n=parseInt(e.key);
+  if(!isNaN(n) && n>=1 && n<=sizes.length){
+    e.preventDefault();
+    pickSzIdx(n-1);
+    setSzFocus(n-1);
+  }
+}
+
+function adjSpQty(d){
+  spQtyN=Math.max(1,spQtyN+d);
+  document.getElementById('spQtyVal').textContent=spQtyN;
+}
+function closeSP(){
+  document.getElementById('sizePickerModal').style.display='none';
+  document.removeEventListener('keydown', spKeyHandler);
+  spItem=null;spFocusIdx=-1;
+}
+// Keep old pickSz for backward compat (called from onclick if needed)
+function pickSz(s,btn){
+  var sizes=spItem.tipeSize==='apparel'?SZ_APPAREL:spItem.tipeSize==='footwear'?SZ_SHOE:[];
+  var idx=sizes.indexOf(s);
+  if(idx>=0) pickSzIdx(idx);
+}
 function confirmSP(){
   if(!spItem||!spSize)return;
+  document.removeEventListener('keydown', spKeyHandler);
   var key=spItem.kode+'__'+spSize;
   var ex=order.find(function(x){return x.key===key;});
   if(ex){ex.qty+=spQtyN;recalcItem(ex);}
@@ -1315,12 +1446,62 @@ function doCheckout(){
 // ══ RESI ═══════════════════════════════════════════════════════
 function showResi(d){
   var itemsHtml=(d.items||[]).map(function(i){
-    var warna=i.warna&&i.warna!=='undefined'?i.warna:'';
-    var meta=[i.size&&i.size!=='-'?i.size:'',warna].filter(Boolean).join(' · ');
-    var disInfo=i.disAmt>0?' <span style="color:#d97706">-'+idr(i.disAmt)+'</span>':'';
-    return '<div style="margin-bottom:6px"><div class="resi-row"><span style="font-weight:600">'+i.nama+'</span><span class="rv">'+idr(i.subtotal)+disInfo+'</span></div><div style="font-size:10px;color:#6b7280;margin-bottom:3px">'+(meta?meta+' · ':'')+'×'+i.qty+' @ '+idr(i.harga)+'</div></div>';
+    var warna=i.warna&&i.warna!=='undefined'&&i.warna!=='-'?i.warna:'';
+    var size=i.size&&i.size!=='-'&&i.size!=='Free Size'?i.size:(i.size==='Free Size'?'Free':'');
+    var meta=[size,warna].filter(Boolean).join(' / ');
+    var hargaSatuan=i.harga;
+    var qty=i.qty;
+    var subtotal=i.subtotal;
+    var disAmt=i.disAmt||0;
+    // Harga satuan × qty
+    var baris1='<div class="resi-row" style="margin-bottom:1px">'
+      +'<span style="font-weight:700;font-size:12px">'+i.nama+'</span>'
+      +(meta?'<span style="font-size:10px;color:#9ca3af">'+meta+'</span>':'')
+      +'</div>';
+    // Detail: qty × harga — kalau ada diskon tampil per item
+    var baris2='<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;padding-left:2px;margin-bottom:1px">'
+      +'<span>'+qty+' × '+idr(hargaSatuan)+'</span>'
+      +'<span style="font-family:monospace">'+idr(qty*hargaSatuan)+'</span>'
+      +'</div>';
+    var baris3='';
+    if(disAmt>0){
+      baris3='<div style="display:flex;justify-content:space-between;font-size:11px;color:#d97706;padding-left:2px;margin-bottom:1px">'
+        +'<span>Diskon</span>'
+        +'<span style="font-family:monospace">− '+idr(disAmt)+'</span>'
+        +'</div>';
+    }
+    var baris4='<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;padding-left:2px;border-top:1px solid #f3f4f6;padding-top:2px;margin-bottom:8px">'
+      +'<span style="color:#6b7280;font-weight:400;font-size:10px">Subtotal</span>'
+      +'<span style="font-family:monospace">'+idr(subtotal)+'</span>'
+      +'</div>';
+    return baris1+baris2+baris3+baris4;
   }).join('');
-  lastResiHtml='<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:18px;font-weight:900;letter-spacing:4px;text-transform:uppercase;margin-bottom:2px">GOZEAL</div><div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Store</div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>No.</span><span class="rv" style="font-size:10px">'+d.noTransaksi+'</span></div><div class="resi-row"><span>Tanggal</span><span class="rv">'+d.tanggal+'</span></div><div class="resi-row"><span>Kasir</span><span class="rv">'+d.kasir+'</span></div><hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'+itemsHtml+'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/><div class="resi-row"><span>Subtotal</span><span class="rv">'+idr(d.totalHarga)+'</span></div>'+(d.diskon>0?'<div class="resi-row"><span>Total Diskon</span><span class="rv" style="color:#d97706">− '+idr(d.diskon)+'</span></div>':'')+'<div class="resi-row resi-grand"><span>TOTAL</span><span class="rv">'+idr(d.grandTotal)+'</span></div><div class="resi-row"><span>Bayar</span><span class="rv">'+idr(d.bayar)+'</span></div><div class="resi-row"><span>Kembalian</span><span class="rv">'+idr(d.kembalian)+'</span></div><div style="text-align:center;margin-top:14px;font-size:10px;color:#6b7280;line-height:1.7">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
+
+  // Kalau items kosong (preview dari riwayat), tampilkan pesan
+  if(!(d.items&&d.items.length)){
+    itemsHtml='<div style="font-size:11px;color:#9ca3af;text-align:center;padding:8px 0;margin-bottom:4px">Detail item tidak tersedia</div>';
+  }
+
+  lastResiHtml=''
+    +'<div style="text-align:center;font-family:\'Roboto\',sans-serif;font-size:20px;font-weight:900;letter-spacing:5px;text-transform:uppercase;margin-bottom:2px">Gozeal</div>'
+    +'<div style="text-align:center;font-size:10px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px">Fashion Store</div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'
+    +'<div class="resi-row" style="font-size:11px;margin-bottom:2px"><span style="color:#6b7280">No.</span><span class="rv" style="font-family:monospace;font-size:10px">'+d.noTransaksi+'</span></div>'
+    +'<div class="resi-row" style="font-size:11px;margin-bottom:2px"><span style="color:#6b7280">Tanggal</span><span class="rv">'+d.tanggal+'</span></div>'
+    +'<div class="resi-row" style="font-size:11px;margin-bottom:2px"><span style="color:#6b7280">Kasir</span><span class="rv">'+d.kasir+'</span></div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'
+    // Items detail
+    +itemsHtml
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:10px 0"/>'
+    // Summary
+    +'<div class="resi-row" style="font-size:12px;margin-bottom:4px"><span style="color:#6b7280">Subtotal</span><span class="rv" style="font-family:monospace">'+idr(d.totalHarga)+'</span></div>'
+    +(d.diskon>0?'<div class="resi-row" style="font-size:12px;margin-bottom:4px"><span style="color:#d97706">Total Diskon</span><span class="rv" style="font-family:monospace;color:#d97706">− '+idr(d.diskon)+'</span></div>':'')
+    +'<div class="resi-row resi-grand" style="margin-bottom:4px"><span>TOTAL</span><span class="rv" style="font-family:monospace">'+idr(d.grandTotal)+'</span></div>'
+    +'<hr style="border:none;border-top:1px dashed #ccc;margin:8px 0"/>'
+    +'<div class="resi-row" style="font-size:12px;margin-bottom:2px"><span style="color:#6b7280">Bayar</span><span class="rv" style="font-family:monospace">'+idr(d.bayar)+'</span></div>'
+    +'<div class="resi-row" style="font-size:12px;margin-bottom:2px"><span style="color:#6b7280">Kembalian</span><span class="rv" style="font-family:monospace;font-weight:700;color:#059669">'+idr(d.kembalian)+'</span></div>'
+    +'<div style="text-align:center;margin-top:16px;font-size:10px;color:#6b7280;line-height:1.8">— Terima kasih telah berbelanja —<br/>Barang yang sudah dibeli tidak dapat dikembalikan.</div>';
+
   document.getElementById('resiContent').innerHTML=lastResiHtml;
   document.getElementById('resiModal').style.display='flex';
 }
@@ -1737,7 +1918,31 @@ function renderDetailTable(data){
   }).join('');
 }
 
-function previewResi(r){showResi({noTransaksi:r.noTransaksi,tanggal:r.tanggal,kasir:r.kasir,totalHarga:r.totalHarga,diskon:r.diskon,grandTotal:r.grandTotal,bayar:r.bayar,kembalian:r.kembalian,items:[]});}
+function previewResi(r){
+  // Ambil detail item dari detailAllData yang sudah di-load
+  var items=(detailAllData||[])
+    .filter(function(d){return d.noTransaksi===r.noTransaksi;})
+    .map(function(d){return{
+      nama    : d.namaBarang,
+      size    : d.size,
+      warna   : d.warna,
+      qty     : d.qty,
+      harga   : d.hargaSatuan,
+      disAmt  : d.diskonItem||0,
+      subtotal: d.subtotal
+    };});
+  showResi({
+    noTransaksi: r.noTransaksi,
+    tanggal    : r.tanggal,
+    kasir      : r.kasir,
+    totalHarga : r.totalHarga,
+    diskon     : r.diskon,
+    grandTotal : r.grandTotal,
+    bayar      : r.bayar,
+    kembalian  : r.kembalian,
+    items      : items
+  });
+}
 
 // ══ REKAP PER PRODUK ═══════════════════════════════════════════
 var rekapData=[], rekapSortCol='totalQty', rekapSortDir='desc';
