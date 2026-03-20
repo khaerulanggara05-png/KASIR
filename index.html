@@ -970,7 +970,7 @@ table.master-tbl thead th.sort-asc .sort-icon,.master-tbl thead th.sort-desc .so
 
 <script>
 // ══ CONFIG — GANTI URL INI SETELAH DEPLOY ULANG ═══════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwo__h3wbwRwnhk_T7lTZ11MDNHX3hIbKfDEOzoRjGAKlJ-XI2mEJ9jyxhFE2zAKmzVYA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuQWH5sFTbd7swOIYhgwRnctLOOkGYI1-p-UALmpANiVuaaaiVQlk0_CDuFC9eyOtW/exec';
 
 // ══ API FETCH ══════════════════════════════════════════════════
 function api(action, body) {
@@ -1091,7 +1091,13 @@ function searchKeyNav(e){
   if(!items.length)return;
   if(e.key==='ArrowDown'){e.preventDefault();searchFocusIdx=Math.min(searchFocusIdx+1,items.length-1);items.forEach(function(el,i){el.classList.toggle('search-focused',i===searchFocusIdx);});items[searchFocusIdx].scrollIntoView({block:'nearest'});}
   else if(e.key==='ArrowUp'){e.preventDefault();searchFocusIdx=Math.max(searchFocusIdx-1,0);items.forEach(function(el,i){el.classList.toggle('search-focused',i===searchFocusIdx);});items[searchFocusIdx].scrollIntoView({block:'nearest'});}
-  else if(e.key==='Enter'){e.preventDefault();if(searchFocusIdx>=0&&items[searchFocusIdx])items[searchFocusIdx].click();else if(items.length===1)items[0].click();}
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    if(searchFocusIdx>=0&&items[searchFocusIdx]) items[searchFocusIdx].click();
+    else if(items.length===1) items[0].click();
+    // Blur search supaya keyboard handler size picker tidak terganggu
+    document.getElementById('searchQ').blur();
+  }
   else if(e.key==='Escape'){document.getElementById('searchQ').value='';filterProd();}
 }
 
@@ -1181,10 +1187,12 @@ function openSP(kode){
 
   document.getElementById('sizePickerModal').style.display = 'flex';
 
-  // Pasang keyboard handler — pastikan tidak dobel
+  // Pasang keyboard handler dengan delay — biar Enter dari search tidak bocor masuk
   if(!spKeyAttached){
-    document.addEventListener('keydown', spKeyHandler);
-    spKeyAttached = true;
+    setTimeout(function(){
+      document.addEventListener('keydown', spKeyHandler);
+      spKeyAttached = true;
+    }, 150);
   }
 }
 
@@ -1212,6 +1220,11 @@ function pickSzIdx(idx){
 function spKeyHandler(e){
   // Hanya aktif kalau modal terbuka
   if(document.getElementById('sizePickerModal').style.display==='none') return;
+
+  // Jangan proses kalau focus ada di luar modal (misal search box)
+  var active = document.activeElement;
+  var modal = document.getElementById('spModalBox');
+  if(active && modal && !modal.contains(active) && active.tagName==='INPUT') return;
 
   var sizes = spItem ? (spItem.tipeSize==='apparel' ? SZ_APPAREL
               : spItem.tipeSize==='footwear' ? SZ_SHOE : []) : [];
@@ -2488,3 +2501,4 @@ window.onload = function() {
 };
 </script>
 </body>
+</html>
